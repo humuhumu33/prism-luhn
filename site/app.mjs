@@ -1,6 +1,7 @@
-// The repository's app page: loads app.holo, verifies it, lets a visitor send
-// requests and replay the examples the archive carries. Generic on purpose:
-// an app whose requests are text shows them as text, any other as hex.
+// The standard Prism app page: loads app.holo with the vendored prism-code
+// runtime, verifies it, shows what was proved and what is trusted, lets a
+// visitor send requests, and replays the examples the archive carries.
+// Everything specific to this app comes from app.json and the holo.
 import { load } from "./vendor/prism-code/src/browser.mjs";
 
 const $ = (id) => document.getElementById(id);
@@ -30,62 +31,175 @@ function parse(text) {
   return Uint8Array.from(digits.match(/../g) ?? [], (pair) => parseInt(pair, 16));
 }
 
+function chip(element, text, state) {
+  element.textContent = text;
+  element.className = `chip chip-${state}`;
+}
+
+function item(list, mark, markClass, name, what) {
+  const li = document.createElement("li");
+  const m = document.createElement("span");
+  m.className = markClass;
+  m.textContent = mark;
+  const body = document.createElement("div");
+  const n = document.createElement("div");
+  n.className = "name";
+  n.textContent = name;
+  const w = document.createElement("div");
+  w.className = "what";
+  w.textContent = what;
+  body.append(n, w);
+  li.append(m, body);
+  list.append(li);
+}
+
+function theme() {
+  const root = document.documentElement;
+  const button = $("theme");
+  const paint = () => (button.textContent = root.classList.contains("dark") ? "Light" : "Dark");
+  paint();
+  button.addEventListener("click", () => {
+    root.classList.toggle("dark");
+    try {
+      localStorage.setItem("prism-theme", root.classList.contains("dark") ? "dark" : "light");
+    } catch {
+      // A private window keeps no preference; the page still switches.
+    }
+    paint();
+  });
+}
+
+function describeApp(meta) {
+  document.title = meta.name;
+  $("name-text").textContent = meta.name;
+  $("purpose").textContent = meta.purpose;
+  $("claim").textContent = meta.claim;
+  $("prop-name").textContent = meta.proposition.name;
+  $("prop-text").textContent = meta.proposition.text;
+  $("prop-plain").textContent = meta.proposition.plain;
+  for (const t of meta.theorems) {
+    item($("theorems"), "proved", "tick", `${t.name} : ${t.statement}`, `${t.how}. ${t.where}`);
+  }
+  for (const p of meta.pinned) {
+    item($("pinned"), "pinned", "pin", p.name, `${p.what} ${p.where}`);
+  }
+  for (const t of meta.trusted) {
+    item($("trusted"), "trusted", "pin", t.name, t.value);
+  }
+  $("att-proof").textContent = meta.attestations.proof.id;
+  $("att-proof").href = meta.attestations.proof.url;
+  $("att-build").textContent = meta.attestations.build.id;
+  $("att-build").href = meta.attestations.build.url;
+  $("request-label").textContent = meta.inputLabel;
+  $("request").placeholder = meta.placeholder ?? "";
+  $("submit").textContent = meta.submitLabel;
+  $("output-label").textContent = meta.outputLabel;
+  $("repo").href = meta.repository;
+  $("report").href = meta.report;
+}
+
+// The answer's state: the app's refusal is a correct answer shown as a
+// warning, never as a failure; a runtime error is a failure.
+function answerState(text, meta) {
+  if (text === meta.invalidResponse) return "warn";
+  return "good";
+}
+
 async function main() {
+  theme();
+  let meta;
+  try {
+    meta = await (await fetch("./app.json")).json();
+    describeApp(meta);
+  } catch (error) {
+    $("name-text").textContent = "Prism app";
+    chip($("verified"), `app.json failed to load: ${describe(error)}`, "bad");
+    return;
+  }
+
   let app;
   try {
     app = await load("./app.holo");
   } catch (error) {
-    $("name").textContent = "No app";
-    $("verified").textContent = `failed to load: ${describe(error)}`;
-    $("verified").classList.add("bad");
+    chip($("verified"), `failed to load: ${describe(error)}`, "bad");
+    chip($("replayed"), "no app", "bad");
     return;
   }
 
   const { identities } = app;
-  document.title = app.name ?? "Prism app";
-  $("name").textContent = app.name ?? "unnamed";
-  $("verified").textContent = identities.verified ? "verified" : "NOT verified";
-  $("verified").classList.add(identities.verified ? "good" : "bad");
+  chip($("verified"), identities.verified ? "verified" : "NOT verified", identities.verified ? "good" : "bad");
   $("fingerprint").textContent = identities.archiveFingerprint;
   $("limits").textContent = app.limits
-    ? `request ${app.limits.request} · response ${app.limits.response} · guest ${app.limits.guestAllocation}`
-    : "—";
+    ? `request ${app.limits.request} bytes, response ${app.limits.response} bytes, guest ${app.limits.guestAllocation} bytes`
+    : "unknown";
+
+  $("copy").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(identities.archiveFingerprint);
+      $("copy").textContent = "Copied";
+      setTimeout(() => ($("copy").textContent = "Copy"), 1500);
+    } catch {
+      $("copy").textContent = "Select it";
+    }
+  });
 
   for (const vector of app.vectors) {
-    const item = document.createElement("li");
+    const row = document.createElement("tr");
+    const request = document.createElement("td");
     const use = document.createElement("button");
     use.type = "button";
-    use.textContent = show(vector.request);
+    use.className = "use";
+    const text = show(vector.request);
+    if (text.length > 48) {
+      use.textContent = `${text.slice(0, 24)} … ${text.slice(-8)}`;
+      const note = document.createElement("div");
+      note.className = "long";
+      note.textContent = `${vector.request.length} bytes`;
+      use.setAttribute("aria-label", `Use the ${vector.request.length} byte example`);
+      request.append(use, note);
+    } else {
+      use.textContent = text === "" ? "(empty)" : text;
+      request.append(use);
+    }
     use.addEventListener("click", () => {
-      $("request").value = show(vector.request);
+      $("request").value = text;
+      $("request").focus();
     });
-    item.append(use, " → ", show(vector.response));
-    $("examples").append(item);
+    const answer = document.createElement("td");
+    const code = document.createElement("code");
+    code.textContent = show(vector.response);
+    answer.append(code);
+    row.append(request, answer);
+    $("examples").append(row);
   }
 
   $("form").addEventListener("submit", async (event) => {
     event.preventDefault();
+    const raw = $("request").value;
+    $("echo").textContent = raw === "" ? "(empty)" : raw;
     try {
-      const response = await app.dispatch(parse($("request").value));
-      $("response").textContent = show(response);
+      const response = show(await app.dispatch(parse(raw)));
+      chip($("response"), response, answerState(response, meta));
     } catch (error) {
-      $("response").textContent = `dispatch failed: ${describe(error)}`;
+      chip($("response"), `dispatch failed: ${describe(error)}`, "bad");
     }
   });
 
-  $("replay").addEventListener("click", async () => {
+  async function replay() {
     const button = $("replay");
     button.disabled = true;
-    $("replayed").textContent = "replaying…";
+    chip($("replayed"), "replaying", "wait");
     try {
       const result = await app.acceptance();
-      $("replayed").textContent = `${result.passed} of ${result.total} passed`;
+      chip($("replayed"), `${result.passed} of ${result.total} passed`, result.passed === result.total ? "good" : "bad");
     } catch (error) {
-      $("replayed").textContent = `failed: ${describe(error)}`;
+      chip($("replayed"), `failed: ${describe(error)}`, "bad");
     } finally {
       button.disabled = false;
     }
-  });
+  }
+  $("replay").addEventListener("click", replay);
+  await replay();
 }
 
 main();

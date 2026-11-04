@@ -3,63 +3,119 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Load, verify and run this repository's Prism application entirely in the browser."
-    />
+    <meta name="description" content="Load, verify and run this repository's Prism application entirely in the browser." />
+    <meta name="color-scheme" content="light dark" />
     <title>Prism app</title>
-    <link rel="stylesheet" href="./try.css" />
+    <link rel="stylesheet" href="./brand/hologram-warm.css" />
+    <link rel="stylesheet" href="./prism-page.css" />
+    <script>
+      // The dark ground is the brand's primary mode; follow the system, remember a choice.
+      (function () {
+        var stored = null;
+        try { stored = localStorage.getItem("prism-theme"); } catch (e) {}
+        var dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
   </head>
   <body>
     <main>
       <header class="intro">
-        <p class="eyebrow">Prism app</p>
-        <h1 id="name">Loading…</h1>
-        <p class="lede">
-          This page loads <code>app.holo</code>, the application this repository
-          builds, with the vendored <code>prism-code</code> runtime. It verifies
-          the archive fingerprint and dispatches requests in the page. Nothing is
-          uploaded and nothing is installed.
-        </p>
+        <div class="brandline">
+          <img class="mark mark-light" src="./brand/logomark-black.svg" alt="" width="20" height="20" />
+          <img class="mark mark-dark" src="./brand/logomark-white.svg" alt="" width="20" height="20" />
+          <p class="eyebrow">Prism app</p>
+          <button id="theme" class="ghost" type="button" aria-label="Switch between light and dark">Dark</button>
+        </div>
+        <h1 id="name"><span class="dot" aria-hidden="true"></span><span id="name-text">Loading</span></h1>
+        <p id="purpose" class="lede"></p>
       </header>
 
       <section class="card" aria-labelledby="identity-title">
-        <h2 id="identity-title">Archive identity</h2>
+        <h2 id="identity-title">Identity</h2>
         <dl class="facts">
           <div>
             <dt>Status</dt>
-            <dd id="verified" aria-live="polite">loading…</dd>
+            <dd><span id="verified" class="chip chip-wait" aria-live="polite">loading</span></dd>
           </div>
           <div>
             <dt>Fingerprint</dt>
-            <dd><code id="fingerprint">—</code></dd>
+            <dd class="row">
+              <code id="fingerprint" class="hash">loading</code>
+              <button id="copy" class="ghost" type="button" aria-label="Copy the fingerprint">Copy</button>
+              <a id="holo" class="ghost" href="./app.holo" download>Download the holo</a>
+            </dd>
           </div>
           <div>
             <dt>Limits</dt>
-            <dd id="limits">—</dd>
+            <dd id="limits" class="muted">loading</dd>
+          </div>
+          <div>
+            <dt>Proof attestation</dt>
+            <dd><a id="att-proof" class="hash" href="#"></a></dd>
+          </div>
+          <div>
+            <dt>Build attestation</dt>
+            <dd><a id="att-build" class="hash" href="#"></a></dd>
           </div>
         </dl>
       </section>
 
-      <section class="card" aria-labelledby="request-title">
-        <h2 id="request-title">Send a request</h2>
-        <form id="form" class="request">
-          <label for="request">Request (text, or <code>hex:</code> followed by bytes)</label>
-          <textarea id="request" rows="3" spellcheck="false"></textarea>
-          <button type="submit">Send</button>
+      <section class="card" aria-labelledby="proved-title">
+        <h2 id="proved-title">What is proved</h2>
+        <p id="claim" class="claim"></p>
+        <div class="proposition">
+          <p class="label">The rule, as the proposition <code id="prop-name"></code></p>
+          <pre id="prop-text" class="mono"></pre>
+          <p id="prop-plain" class="muted"></p>
+        </div>
+        <ul id="theorems" class="list"></ul>
+        <details class="disclosure">
+          <summary>Pinned by the gate, not proved</summary>
+          <ul id="pinned" class="list"></ul>
+        </details>
+        <details class="disclosure">
+          <summary>Trusted, not checked by the kernel</summary>
+          <ul id="trusted" class="list"></ul>
+        </details>
+      </section>
+
+      <section class="card" aria-labelledby="try-title">
+        <h2 id="try-title">Try it</h2>
+        <form id="form" class="try">
+          <label for="request" id="request-label">Request</label>
+          <div class="row">
+            <input id="request" type="text" autocomplete="off" spellcheck="false" inputmode="numeric" />
+            <button id="submit" class="primary" type="submit">Send</button>
+          </div>
+          <p class="hint muted">Text, or <code>hex:</code> followed by bytes.</p>
         </form>
-        <p>Response</p>
-        <pre id="response">—</pre>
+        <div class="answer">
+          <p class="label" id="output-label">Answer</p>
+          <p class="row"><code id="echo" class="mono muted"></code></p>
+          <p><span id="response" class="chip chip-wait" aria-live="polite">none yet</span></p>
+        </div>
       </section>
 
       <section class="card" aria-labelledby="examples-title">
         <h2 id="examples-title">Examples the app carries</h2>
-        <p>
-          <button id="replay" type="button">Replay all</button>
-          <span id="replayed" aria-live="polite"></span>
+        <p class="row">
+          <button id="replay" class="secondary" type="button">Replay all</button>
+          <span id="replayed" class="chip chip-wait" aria-live="polite">replaying</span>
         </p>
-        <ul id="examples"></ul>
+        <table class="examples">
+          <thead><tr><th scope="col">Request</th><th scope="col">Answer</th></tr></thead>
+          <tbody id="examples"></tbody>
+        </table>
       </section>
+
+      <footer class="foot muted">
+        <a id="repo" href="#">Repository</a>
+        <a id="report" href="#">Report</a>
+        <a href="https://github.com/UOR-Foundation/template">Built from UOR-Foundation/template</a>
+        <a href="https://github.com/Hologram-Technologies/hologram-brand-kit">Hologram brand kit</a>
+        <span>MIT or Apache-2.0</span>
+      </footer>
     </main>
     <script type="importmap">
       { "imports": { "node:crypto": "./vendor/node-crypto-shim.mjs" } }

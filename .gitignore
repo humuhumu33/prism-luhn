@@ -19,3 +19,7 @@
 node_modules/
 test-results/
 playwright-report/
+
+# The page is assembled by pages.yml: the holo it builds and the vendored runtime.
+site/app.holo
+site/vendor/
