@@ -1,6 +1,6 @@
-name = "PrismTemplateContract"
+name = "PrismLuhn"
 version = "0.1.0"
-defaultTargets = ["PrismTemplateContract"]
+defaultTargets = ["PrismLuhn"]
 
 [[lean_lib]]
-name = "PrismTemplateContract"
+name = "PrismLuhn"

@@ -1,0 +1,25 @@
+\begin{lexlean}{LuhnRule}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Bytes}
+\importmodule{CardNumber}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+  name: Luhn,
+  parameters: [value : Bytes],
+  result: Prop,
+  body: ((prim remainder (CardNumber::checksum value (Foundation.Bytes::byteLength value) 0 0) 10 0 : Nat) = 0),
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: isLuhn_decides,
+  parameters: [value : Bytes],
+  statement: (((CardNumber::isLuhn value) = true) <-> (Luhn value)),
+  proof: linear_arithmetic{definitions: [CardNumber::isLuhn, Luhn]},
+  axioms: [Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}
