@@ -31,7 +31,7 @@ definition{
   name: weighted,
   parameters: [digit : Nat, parity : Nat],
   result: Nat,
-  body: (if (parity =? 1) then (if (9 <? (prim multiply digit 2 : Nat)) then (prim subtract (prim multiply digit 2 : Nat) 9 : Nat) else (prim multiply digit 2 : Nat)) else digit)
+  body: (if (parity =? 1) then (if (9 <? (prim multiply digit 2 : Nat)) then (prim subtract (prim multiply digit 2 : Nat) 8 : Nat) else (prim multiply digit 2 : Nat)) else digit)
 }
 
 definition{
