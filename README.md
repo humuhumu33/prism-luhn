@@ -29,7 +29,8 @@ decided by `isLuhn`, so weakening any of them fails the gate.
 Attestation of the proof, from the UOR MCP server:
 `c954cc8e0955b5d67145d114dcda94c20307d124a8eef385764a2ee90d6c1288`.
 Build attestation, from `prismpm verify`:
-recorded in [REPORT.md](REPORT.md) once the first `pages` run has built the holo.
+`26b51bda592f3ada947e481d97016adb405e76e2cb44e9ee52f8c642b2ef54f0`.
+Archive fingerprint: `af7704d37dafc17f5bc51090e0ace8cd23e8e18604db410fb6b85a9d5fecf410`.
 
 ## Check it yourself
 
