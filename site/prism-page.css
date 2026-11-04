@@ -73,10 +73,6 @@ main {
   margin-bottom: var(--space-4);
 }
 
-.mark { display: none; width: 1.25rem; height: 1.25rem; }
-html:not(.dark) .mark-light { display: inline-block; }
-html.dark .mark-dark { display: inline-block; }
-
 .eyebrow {
   margin: 0;
   flex: 1;
