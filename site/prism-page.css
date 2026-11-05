@@ -217,6 +217,15 @@ a.hash:hover { color: var(--link-hover); }
 .chip-bad { background: var(--destructive-subtle); color: var(--destructive); border-color: var(--destructive-border); }
 .chip[hidden] { display: none; }
 
+/* On paper, the kit's success and destructive text on their subtle grounds
+ * measures under 4.5:1 at 14 px (4.38 and about 4.0), so the chips take the
+ * card as their ground there and keep the coloured hairline. */
+html:not(.dark) .chip-good, html:not(.dark) .chip-bad { background: var(--card); }
+
+/* Space reserved for what the holo fills in after it loads, so nothing shifts. */
+.reserve-1 { display: block; min-height: 1.5rem; }
+.reserve-2 { display: block; min-height: 2.625rem; }
+
 /* Controls: 36px on a fine pointer, 48px on a coarse one, radius one step
  * under the surface, hairline, no shadow. */
 
@@ -276,7 +285,7 @@ input[type="text"] {
   font-family: var(--font-mono);
   font-size: var(--text-16);
 }
-input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
+input[type="text"]::placeholder { color: var(--muted-foreground); }
 
 .try label { display: block; margin-bottom: var(--space-2); font-size: var(--text-14); font-weight: 500; color: var(--muted-foreground); }
 .hint { margin: var(--space-2) 0 0; font-size: var(--text-14); }
@@ -292,7 +301,7 @@ input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
 .list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
 .list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; }
 .list .tick { color: var(--success); font-weight: 500; }
-.list .pin { color: var(--muted-foreground-subtle); font-weight: 500; }
+.list .pin { color: var(--muted-foreground); font-weight: 500; }
 .list .name { font-family: var(--font-mono); font-size: var(--text-14); overflow-wrap: anywhere; }
 .list .what { font-size: var(--text-14); color: var(--muted-foreground); overflow-wrap: anywhere; }
 

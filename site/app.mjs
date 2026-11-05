@@ -1,14 +1,17 @@
 // The standard Prism app page: loads app.holo with the vendored prism-code
-// runtime, verifies it, shows what was proved and what is trusted, lets a
-// visitor send requests, and replays the examples the archive carries.
-// Everything specific to this app comes from app.json and the holo. The
-// service worker precaches it all, so the page works offline after one visit.
+// runtime, verifies it, lets a visitor send requests, and replays the
+// examples the archive carries. Everything the page says about the app is
+// rendered into index.html by bootstrap/page.mjs from app.json before any
+// script runs; this module adds only what the holo itself tells it. The
+// service worker caches every response as it passes, so the page works
+// offline after one visit.
 import { load } from "./vendor/prism-code/src/browser.mjs";
 
 const $ = (id) => document.getElementById(id);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const describe = (error) => error?.code ?? error?.message ?? String(error);
+const data = JSON.parse($("app-data").textContent);
 
 const hex = (bytes) =>
   "hex:" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
@@ -37,27 +40,14 @@ function chip(element, text, state) {
   element.className = `chip chip-${state}`;
 }
 
-function item(list, mark, markClass, name, what) {
-  const li = document.createElement("li");
-  const m = document.createElement("span");
-  m.className = markClass;
-  m.textContent = mark;
-  const body = document.createElement("div");
-  const n = document.createElement("div");
-  n.className = "name";
-  n.textContent = name;
-  const w = document.createElement("div");
-  w.className = "what";
-  w.textContent = what;
-  body.append(n, w);
-  li.append(m, body);
-  list.append(li);
-}
-
 function theme() {
   const root = document.documentElement;
   const button = $("theme");
-  const paint = () => (button.textContent = root.classList.contains("dark") ? "Light" : "Dark");
+  const paint = () => {
+    const next = root.classList.contains("dark") ? "Light" : "Dark";
+    button.textContent = next;
+    button.setAttribute("aria-label", `${next} theme`);
+  };
   paint();
   button.addEventListener("click", () => {
     root.classList.toggle("dark");
@@ -70,15 +60,16 @@ function theme() {
   });
 }
 
-// Install the service worker; when a new one is waiting, show one chip and
-// reload only when the visitor asks. Never silently.
+// Install the service worker once the page has loaded, so it never competes
+// with the first paint; when a new one is waiting, show one chip and reload
+// only when the visitor asks. Never silently.
 function offline() {
   const paint = () => ($("offline").hidden = navigator.onLine);
   paint();
   addEventListener("online", paint);
   addEventListener("offline", paint);
   if (!("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.register("./sw.js").then((registration) => {
+  const register = () => navigator.serviceWorker.register("./sw.js").then((registration) => {
     const offer = (worker) => {
       if (!navigator.serviceWorker.controller) return;
       $("update").hidden = false;
@@ -100,56 +91,17 @@ function offline() {
   }).catch(() => {
     // No worker: the page still works online.
   });
-}
-
-function describeApp(meta) {
-  document.title = meta.name;
-  $("name-text").textContent = meta.name;
-  $("purpose").textContent = meta.purpose;
-  $("claim").textContent = meta.claim;
-  $("prop-name").textContent = meta.proposition.name;
-  $("prop-text").textContent = meta.proposition.text;
-  $("prop-plain").textContent = meta.proposition.plain;
-  for (const t of meta.theorems) {
-    item($("theorems"), "proved", "tick", `${t.name} : ${t.statement}`, `${t.how}. ${t.where}`);
-  }
-  for (const p of meta.pinned) {
-    item($("pinned"), "pinned", "pin", p.name, `${p.what} ${p.where}`);
-  }
-  for (const t of meta.trusted) {
-    item($("trusted"), "trusted", "pin", t.name, t.value);
-  }
-  $("att-proof").textContent = meta.attestations.proof.id;
-  $("att-proof").href = meta.attestations.proof.url;
-  $("att-build").textContent = meta.attestations.build.id;
-  $("att-build").href = meta.attestations.build.url;
-  $("request-label").textContent = meta.inputLabel;
-  $("request").placeholder = meta.placeholder ?? "";
-  $("submit").textContent = meta.submitLabel;
-  $("output-label").textContent = meta.outputLabel;
-  $("repo").href = meta.repository;
-  $("report").href = meta.report;
+  if (document.readyState === "complete") register();
+  else addEventListener("load", register, { once: true });
 }
 
 // The answer's state: the app's refusal is a correct answer shown as a
 // warning, never as a failure; a runtime error is a failure.
-function answerState(text, meta) {
-  if (text === meta.invalidResponse) return "warn";
-  return "good";
-}
+const answerState = (text) => (text === data.invalidResponse ? "warn" : "good");
 
 async function main() {
   theme();
   offline();
-  let meta;
-  try {
-    meta = await (await fetch("./app.json")).json();
-    describeApp(meta);
-  } catch (error) {
-    $("name-text").textContent = "Prism app";
-    chip($("verified"), `app.json failed to load: ${describe(error)}`, "bad");
-    return;
-  }
 
   let app;
   try {
@@ -185,11 +137,12 @@ async function main() {
     use.className = "use";
     const text = show(vector.request);
     if (text.length > 48) {
-      use.textContent = `${text.slice(0, 24)} … ${text.slice(-8)}`;
+      const shown = `${text.slice(0, 24)} … ${text.slice(-8)}`;
+      use.textContent = shown;
       const note = document.createElement("div");
       note.className = "long";
       note.textContent = `${vector.request.length} bytes`;
-      use.setAttribute("aria-label", `Use the ${vector.request.length} byte example`);
+      use.setAttribute("aria-label", `${shown}, ${vector.request.length} bytes`);
       request.append(use, note);
     } else {
       use.textContent = text === "" ? "(empty)" : text;
@@ -213,7 +166,7 @@ async function main() {
     $("echo").textContent = raw === "" ? "(empty)" : raw;
     try {
       const response = show(await app.dispatch(parse(raw)));
-      chip($("response"), response, answerState(response, meta));
+      chip($("response"), response, answerState(response));
     } catch (error) {
       chip($("response"), `dispatch failed: ${describe(error)}`, "bad");
     }

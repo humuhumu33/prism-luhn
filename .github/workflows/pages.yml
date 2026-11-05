@@ -78,6 +78,7 @@ jobs:
           cp "${holos[0]}" site/app.holo
           cp -r try/vendor site/vendor
           rm -rf site/vendor/prism-code/fixtures
+          node bootstrap/page.mjs site
           node bootstrap/precache.mjs site
       - name: Lighthouse at 100 on mobile, before anything is deployed
         shell: bash

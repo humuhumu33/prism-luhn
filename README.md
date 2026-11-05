@@ -34,16 +34,35 @@ Archive fingerprint: `af7704d37dafc17f5bc51090e0ace8cd23e8e18604db410fb6b85a9d5f
 
 ## The page
 
-`site/` is the standard Prism app page, bound to the
-[Hologram brand kit](https://github.com/Hologram-Technologies/hologram-brand-kit):
-its tokens (`site/brand/hologram-warm.css`, unchanged), its fonts (Archivo,
-Geist, Geist Mono, under the OFL in `site/fonts`), and its voice. The page's
-own stylesheet declares no colour; every value is a brand variable. It shows
-what is proved (the claim, the proposition, the theorem and both attestations),
-what the gate pins without proving, and what is trusted (the SDK image, the
-Lean toolchain, the LexLean compiler semantics, the vendored runtime, your
-browser), reading everything specific to this app from `site/app.json` and
-the holo.
+`site/` is the standard Prism app page: a lean, installable PWA bound to the
+[Hologram brand kit](https://github.com/Hologram-Technologies/hologram-brand-kit).
+
+- **Brand wiring.** `brand.lock` pins the kit at one commit and records the
+  SHA-256 of every file the page takes from it: `hologram-warm.css` and the
+  licences, copied byte for byte, and the five fonts, subset for the page.
+  `node bootstrap/brand-sync.mjs --check` verifies the served files against
+  the lock and runs in `pages.yml` before the build; `--pin <commit>` moves
+  the whole look of the app to a new kit revision. Nothing under `site/brand`
+  or `site/fonts` is edited by hand, and the page's own stylesheet declares
+  no colour: every value is a brand variable.
+- **Fonts.** Archivo, Geist and Geist Mono, subset by
+  `bootstrap/brand-fonts.py` (207 KB to 44 KB) with metric-matched fallbacks
+  so the swap causes no layout shift.
+- **Any screen.** Material 3 window size classes: one column under 600 px,
+  wider margins from 600, two panes from 840; 48 px touch targets on coarse
+  pointers; safe areas; forced colours and reduced motion respected.
+- **Installable and offline.** A manifest with generated icons (the warm
+  ground, the app's initial, the brand dot, no logo) and a service worker
+  that precaches every file by content hash, so the app loads, verifies the
+  holo and answers requests with the network off. A new deploy shows one
+  "Update available" chip and reloads only when asked.
+- **What it shows.** The claim, the proposition as it reads in the model, the
+  theorem and both attestations, what the gate pins without proving, and the
+  trusted set with digests, all read from `site/app.json` and the holo.
+- **Gate.** `lighthouserc.json` asserts 100 in performance, accessibility,
+  best practices and SEO on the mobile profile, LCP under 1.5 s, TBT under
+  100 ms, CLS 0 and under 120 KB with no third-party request; `pages.yml`
+  runs Lighthouse CI on the assembled site before anything is deployed.
 
 ## Check it yourself
 

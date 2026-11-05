@@ -9,7 +9,7 @@ import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 const site = process.argv[2] ?? "site";
-const skip = new Set(["precache.json", "sw.js"]);
+const skip = new Set(["precache.json", "sw.js", "page.template.html", "app.json"]);
 
 async function walk(dir) {
   const out = [];
@@ -27,7 +27,8 @@ for (const path of (await walk(site)).sort()) {
   if (skip.has(rel) || rel.endsWith(".txt") || rel.endsWith(".d.ts") || rel.endsWith(".md") || rel.includes("fixtures/")) continue;
   if (/vendor\/prism-code\/src\/(node|docker)\.mjs$/.test(rel)) continue;
   const bytes = await readFile(path);
-  files.push({ path: "./" + rel, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length });
+  const eager = rel.startsWith("icons/") || rel === "manifest.webmanifest";
+  files.push({ path: "./" + rel, sha256: createHash("sha256").update(bytes).digest("hex"), bytes: bytes.length, ...(eager ? { eager } : {}) });
 }
 const version = createHash("sha256").update(JSON.stringify(files.map((f) => [f.path, f.sha256]))).digest("hex").slice(0, 16);
 await writeFile(join(site, "precache.json"), JSON.stringify({ version, files }, null, 2) + "\n");
