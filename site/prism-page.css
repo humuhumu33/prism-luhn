@@ -1,13 +1,14 @@
 /* The standard Prism app page, bound to the Hologram brand kit.
  * Every colour, radius, border, ring, duration and easing is a variable from
- * brand/hologram-warm.css. The type scale below is the brand's: 14, 16, 18,
- * 20, 24, 30, 36 px, nothing under 14. No shadows on the dark ground. */
-
-@font-face { font-family: "Archivo"; src: url("./fonts/Archivo-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Geist"; src: url("./fonts/Geist-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Geist"; src: url("./fonts/Geist-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Geist Mono"; src: url("./fonts/GeistMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Geist Mono"; src: url("./fonts/GeistMono-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+ * brand/hologram-warm.css; the fonts and their metric-matched fallbacks come
+ * from brand/fonts.css, both pinned by brand.lock. The type scale is the
+ * brand's: 14, 16, 18, 20, 24, 30, 36 px, nothing under 14. No shadows on the
+ * dark ground.
+ *
+ * Layout follows the Material 3 window size classes: compact under 600 px
+ * (one column, 16 px margins), medium 600 to 840 (one column, 24 px margins),
+ * expanded and up from 840 (two panes, 24 px apart). Touch targets are 48 px
+ * on coarse pointers and 36 px controls on fine ones. */
 
 :root {
   --text-14: 0.875rem;
@@ -24,10 +25,20 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-12: 3rem;
+  --margin: 1rem;
   --measure: 45rem;
+  --measure-wide: 80rem;
   --control: 2.25rem;
-  --touch: 2.75rem;
+  --touch: 3rem;
   --radius-control: calc(var(--radius) - 2px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+@media (min-width: 600px) {
+  :root { --margin: 1.5rem; }
 }
 
 * { box-sizing: border-box; }
@@ -46,13 +57,31 @@ body {
 }
 
 main {
-  width: min(100% - var(--space-8), var(--measure));
+  width: min(100% - 2 * var(--margin) - var(--safe-left) - var(--safe-right), var(--measure));
   margin: 0 auto;
-  padding: var(--space-12) 0 var(--space-12);
+  padding: calc(var(--space-6) + var(--safe-top)) 0 calc(var(--space-12) + var(--safe-bottom));
 }
 
-@media (max-width: 40rem) {
-  main { width: calc(100% - var(--space-8)); padding-top: var(--space-6); }
+@media (min-width: 600px) {
+  main { padding-top: calc(var(--space-12) + var(--safe-top)); }
+}
+
+/* Expanded width and up: two panes, identity and proof beside try and examples. */
+@media (min-width: 840px) {
+  main { width: min(100% - 2 * var(--margin) - var(--safe-left) - var(--safe-right), var(--measure-wide)); }
+  .panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+/* Compact height, a phone in landscape: a shorter header, nothing sticky. */
+@media (max-height: 480px) {
+  main { padding-top: calc(var(--space-4) + var(--safe-top)); }
+  .intro { margin-bottom: var(--space-4); }
+  .lede { display: none; }
 }
 
 ::selection { background: var(--brand); color: var(--brand-foreground); }
@@ -91,9 +120,10 @@ h1 {
   font-size: var(--text-36);
   line-height: 1.1;
   letter-spacing: var(--tracking-display);
+  overflow-wrap: anywhere;
 }
 
-@media (max-width: 40rem) { h1 { font-size: var(--text-30); } }
+@media (max-width: 599px) { h1 { font-size: var(--text-30); } }
 
 /* The brand accent appears once per view: the mark beside the name. */
 .dot {
@@ -113,11 +143,11 @@ h1 {
   color: var(--card-foreground);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius);
-  padding: var(--space-6);
+  padding: var(--space-4);
   margin-bottom: var(--space-4);
 }
 
-@media (max-width: 40rem) { .card { padding: var(--space-4); } }
+@media (min-width: 600px) { .card { padding: var(--space-6); } }
 
 h2 {
   margin: 0 0 var(--space-4);
@@ -166,7 +196,8 @@ a.hash:hover { color: var(--link-hover); }
 .facts dd { margin: 0; }
 
 /* Chips carry state. Success for a passing check, warning for a refused
- * request (the app answered correctly), destructive for a failure. */
+ * request (the app answered correctly) and for an update, destructive for a
+ * failure. */
 
 .chip {
   display: inline-flex;
@@ -184,8 +215,10 @@ a.hash:hover { color: var(--link-hover); }
 .chip-good { background: var(--success-subtle); color: var(--success); border-color: var(--success-border); }
 .chip-warn { background: var(--warning-subtle); color: var(--warning); border-color: var(--warning-border); }
 .chip-bad { background: var(--destructive-subtle); color: var(--destructive); border-color: var(--destructive-border); }
+.chip[hidden] { display: none; }
 
-/* Controls: 36px, radius one step under the surface, hairline, no shadow. */
+/* Controls: 36px on a fine pointer, 48px on a coarse one, radius one step
+ * under the surface, hairline, no shadow. */
 
 button, input, .ghost {
   font: inherit;
@@ -210,6 +243,8 @@ button:disabled { cursor: default; color: var(--muted-foreground); }
 button.primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
 button.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
 
+button.bare { min-height: auto; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; }
+
 .ghost, button.ghost {
   display: inline-flex;
   align-items: center;
@@ -224,10 +259,14 @@ button.primary:hover { background: var(--primary-hover); border-color: var(--pri
 }
 .ghost:hover, button.ghost:hover { background: var(--accent); color: var(--accent-foreground); }
 
-@media (pointer: coarse) { button, .ghost { min-height: var(--touch); } }
+@media (pointer: coarse) {
+  button, .ghost, input[type="text"], .disclosure summary { min-height: var(--touch); }
+  .row { gap: var(--space-2); }
+}
 
 input[type="text"] {
   flex: 1 1 14rem;
+  min-width: 0;
   min-height: var(--control);
   padding: 0 var(--space-3);
   border-radius: var(--radius-control);
@@ -235,6 +274,7 @@ input[type="text"] {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-mono);
+  font-size: var(--text-16);
 }
 input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
 
@@ -250,21 +290,21 @@ input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
 .proposition p:last-child { margin: 0; font-size: var(--text-14); }
 
 .list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
-.list li { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; }
+.list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; }
 .list .tick { color: var(--success); font-weight: 500; }
 .list .pin { color: var(--muted-foreground-subtle); font-weight: 500; }
-.list .name { font-family: var(--font-mono); font-size: var(--text-14); }
-.list .what { font-size: var(--text-14); color: var(--muted-foreground); }
+.list .name { font-family: var(--font-mono); font-size: var(--text-14); overflow-wrap: anywhere; }
+.list .what { font-size: var(--text-14); color: var(--muted-foreground); overflow-wrap: anywhere; }
 
 .disclosure { margin-top: var(--space-4); border-top: var(--border-width) solid var(--border); padding-top: var(--space-3); }
 .disclosure summary { cursor: pointer; font-size: var(--text-14); font-weight: 500; color: var(--muted-foreground); min-height: var(--control); display: flex; align-items: center; }
 .disclosure[open] summary { margin-bottom: var(--space-3); }
 
-/* Examples */
+/* Examples: a table from medium width up, a two-line list on a compact one. */
 
 .examples { width: 100%; border-collapse: collapse; margin-top: var(--space-4); }
 .examples th {
-  text-align: left;
+  text-align: start;
   font-size: var(--text-14);
   font-weight: 500;
   color: var(--muted-foreground);
@@ -272,7 +312,7 @@ input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
   border-bottom: var(--border-width) solid var(--border);
 }
 .examples td { padding: var(--space-2) 0; border-bottom: var(--border-width) solid var(--border); vertical-align: top; }
-.examples td:first-child { padding-right: var(--space-4); }
+.examples td:first-child { padding-inline-end: var(--space-4); }
 .examples tr:last-child td { border-bottom: 0; }
 .examples button.use {
   min-height: auto;
@@ -282,11 +322,19 @@ input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
   color: var(--foreground);
   font-family: var(--font-mono);
   font-weight: 400;
-  text-align: left;
+  text-align: start;
   overflow-wrap: anywhere;
 }
 .examples button.use:hover { background: var(--accent); }
-.examples .long { color: var(--muted-foreground); }
+.examples .long { color: var(--muted-foreground); font-size: var(--text-14); }
+
+@media (max-width: 599px) {
+  .examples thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .examples tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; border-bottom: var(--border-width) solid var(--border); padding: var(--space-2) 0; }
+  .examples tr:last-child { border-bottom: 0; }
+  .examples td { display: block; padding: 0; border: 0; }
+  .examples td:first-child { padding-inline-end: 0; }
+}
 
 /* Footer */
 
@@ -299,6 +347,15 @@ input[type="text"]::placeholder { color: var(--muted-foreground-subtle); }
 }
 .foot a { color: var(--link); text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 0.2em; }
 .foot a:hover { color: var(--link-hover); }
+.foot [hidden] { display: none; }
+
+.noscript { margin: var(--space-4); color: var(--muted-foreground); }
+
+/* Forced colours: keep the hairlines and the chips' edges. */
+@media (forced-colors: active) {
+  .card, .chip, button, input[type="text"] { border-color: CanvasText; }
+  .dot { background: Highlight; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }

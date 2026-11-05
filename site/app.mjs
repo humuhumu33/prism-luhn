@@ -1,7 +1,8 @@
 // The standard Prism app page: loads app.holo with the vendored prism-code
 // runtime, verifies it, shows what was proved and what is trusted, lets a
 // visitor send requests, and replays the examples the archive carries.
-// Everything specific to this app comes from app.json and the holo.
+// Everything specific to this app comes from app.json and the holo. The
+// service worker precaches it all, so the page works offline after one visit.
 import { load } from "./vendor/prism-code/src/browser.mjs";
 
 const $ = (id) => document.getElementById(id);
@@ -69,6 +70,38 @@ function theme() {
   });
 }
 
+// Install the service worker; when a new one is waiting, show one chip and
+// reload only when the visitor asks. Never silently.
+function offline() {
+  const paint = () => ($("offline").hidden = navigator.onLine);
+  paint();
+  addEventListener("online", paint);
+  addEventListener("offline", paint);
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("./sw.js").then((registration) => {
+    const offer = (worker) => {
+      if (!navigator.serviceWorker.controller) return;
+      $("update").hidden = false;
+      $("reload").addEventListener("click", () => worker.postMessage("skip-waiting"), { once: true });
+    };
+    if (registration.waiting) offer(registration.waiting);
+    registration.addEventListener("updatefound", () => {
+      const worker = registration.installing;
+      worker?.addEventListener("statechange", () => {
+        if (worker.state === "installed") offer(worker);
+      });
+    });
+    let reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+  }).catch(() => {
+    // No worker: the page still works online.
+  });
+}
+
 function describeApp(meta) {
   document.title = meta.name;
   $("name-text").textContent = meta.name;
@@ -107,6 +140,7 @@ function answerState(text, meta) {
 
 async function main() {
   theme();
+  offline();
   let meta;
   try {
     meta = await (await fetch("./app.json")).json();
