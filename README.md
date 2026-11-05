@@ -59,10 +59,18 @@ Archive fingerprint: `af7704d37dafc17f5bc51090e0ace8cd23e8e18604db410fb6b85a9d5f
 - **What it shows.** The claim, the proposition as it reads in the model, the
   theorem and both attestations, what the gate pins without proving, and the
   trusted set with digests, all read from `site/app.json` and the holo.
+- **Any screen, checked.** `bootstrap/screens.mjs` opens the assembled site at
+  every Material 3 window size class and at a phone in landscape, in both
+  themes, and fails the deploy on horizontal overflow, a touch target under
+  48 px, a wrong margin, a missing pane split from 840 px, a line that
+  overflows at 200 percent text, or a page that never verifies; the
+  screenshots are the run's artifact.
 - **Gate.** `lighthouserc.json` asserts 100 in performance, accessibility,
   best practices and SEO on the mobile profile, LCP under 1.5 s, TBT under
   100 ms, CLS 0 and under 120 KB with no third-party request; `pages.yml`
   runs Lighthouse CI on the assembled site before anything is deployed.
+  Measured on the first green run (Lighthouse 12.6.1, mobile): 100 in every
+  category, FCP 1.00 s, LCP 1.21 s, CLS 0, 22 requests, 88 KB.
 
 ## Check it yourself
 
