@@ -79,7 +79,7 @@ jobs:
           cp -r try/vendor site/vendor
           rm -rf site/vendor/prism-code/fixtures
           node bootstrap/precache.mjs site
-      - name: Lighthouse: performance, accessibility, best practices and SEO at 100 on mobile
+      - name: Lighthouse at 100 on mobile, before anything is deployed
         shell: bash
         run: |
           set -euo pipefail
