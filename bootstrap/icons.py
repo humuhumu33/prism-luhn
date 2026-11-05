@@ -1,7 +1,7 @@
 """The app's icons, from the brand: the warm dark ground, the app's initial in
 Archivo SemiBold, and the brand dot. No logo.
 
-    python -I bootstrap/icons.py "Luhn check"
+    python -I bootstrap/icons.py            # the name from site/app.json
 
 Writes site/icons/icon-192.png, icon-512.png, maskable-512.png (the initial
 inside the 80 percent safe zone) and apple-touch-icon.png (180). Needs Pillow
@@ -54,4 +54,6 @@ def main(name):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "Prism app")
+    import json
+    name = sys.argv[1] if len(sys.argv) > 1 else json.load(open(os.path.join(ROOT, "site/app.json"), encoding="utf-8"))["name"]
+    main(name)

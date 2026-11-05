@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// Renders site/index.html from site/page.template.html and site/app.json:
-// everything the page says about the app is in the HTML before any script
-// runs, so nothing shifts after first paint; the three stylesheets and the
-// theme bootstrap are inlined, so nothing blocks rendering; the import map
-// and the inline scripts are hashed into the Content-Security-Policy.
+// Renders site/index.html and site/manifest.webmanifest from
+// site/page.template.html and site/app.json: everything the page says about
+// the app is in the HTML before any script runs, so nothing shifts after
+// first paint; the stylesheets and the theme bootstrap are inlined, so
+// nothing blocks rendering; the import map and the inline scripts are hashed
+// into the Content-Security-Policy. An app edits app.json and nothing else.
 //   node bootstrap/page.mjs site
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -19,7 +20,8 @@ const sha = (text) => "'sha256-" + createHash("sha256").update(text).digest("bas
 const meta = JSON.parse(await read("app.json"));
 let html = await read("page.template.html");
 
-// Styles and the theme bootstrap, inlined.
+// Styles and the theme bootstrap, inlined. The brand variables come from
+// brand/hologram-warm.css and brand/fonts.css, both pinned by brand.lock.
 const css = [await read("brand/hologram-warm.css"), await read("brand/fonts.css"), await read("prism-page.css")]
   .join("\n")
   .replace(/url\("\.\.\/fonts\//g, 'url("./fonts/');
@@ -65,3 +67,27 @@ const left = html.match(/\{\{[A-Z_]+\}\}/g);
 if (left) throw new Error(`unfilled: ${left.join(", ")}`);
 await writeFile(join(site, "index.html"), html);
 console.log(`page: site/index.html rendered from app.json, ${Buffer.byteLength(html)} bytes`);
+
+// The manifest: the brand's warm dark ground, the icons bootstrap/icons.py
+// draws from the app's name, and the live URL as the app's id.
+const manifest = {
+  id: meta.live,
+  name: meta.name,
+  short_name: meta.shortName ?? meta.name.split(" ")[0],
+  description: meta.purpose,
+  start_url: "./",
+  scope: "./",
+  display: "standalone",
+  orientation: "any",
+  lang: "en",
+  background_color: "#151312",
+  theme_color: "#151312",
+  categories: ["utilities", "developer tools"],
+  icons: [
+    { src: "./icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    { src: "./icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    { src: "./icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  ],
+};
+await writeFile(join(site, "manifest.webmanifest"), JSON.stringify(manifest, null, 2) + "\n");
+console.log(`page: site/manifest.webmanifest for ${meta.name} at ${meta.live}`);

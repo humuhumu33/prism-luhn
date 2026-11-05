@@ -28,3 +28,4 @@ site/vendor/
 .brand-src/
 site/precache.json
 site/index.html
+site/manifest.webmanifest

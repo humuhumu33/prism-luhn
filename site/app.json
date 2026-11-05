@@ -1,5 +1,7 @@
 {
   "name": "Luhn check",
+  "shortName": "Luhn",
+  "live": "https://humuhumu33.github.io/prism-luhn/",
   "purpose": "Validates a card number with the Luhn check. Send 8 to 19 digits; it answers valid or invalid, and invalid request for anything else.",
   "inputLabel": "Card number",
   "placeholder": "4539578763621486",
@@ -28,11 +30,26 @@
     }
   ],
   "trusted": [
-    { "name": "SDK image", "value": "ghcr.io/uor-foundation/prismpm-sdk-candidate@sha256:cd3b47d7a370c4a26b8285f5e9c3bb15e639973c55505c3809ddbe55352fea58" },
-    { "name": "Lean toolchain", "value": "leanprover/lean4:v4.32.1" },
-    { "name": "LexLean compiler semantics", "value": "5262e5b4c8b5668ae7066ad686757a6bb7f80c941d515fb9d586894fbc7de69a" },
-    { "name": "prism-code runtime, vendored", "value": "0.2.0, tarball sha512-LBjO3WVy0ZHiWUjgAveUJoT6Fz7u+Oh0IEQyNXldX76jFMkOU44wnL0tp46Xx4/p1QLh8gItYGVRIvaPSW/a8g==" },
-    { "name": "Your browser", "value": "runs the WebAssembly guest and this page" }
+    {
+      "name": "SDK image",
+      "value": "ghcr.io/uor-foundation/prismpm-sdk-candidate@sha256:cd3b47d7a370c4a26b8285f5e9c3bb15e639973c55505c3809ddbe55352fea58"
+    },
+    {
+      "name": "Lean toolchain",
+      "value": "leanprover/lean4:v4.32.1"
+    },
+    {
+      "name": "LexLean compiler semantics",
+      "value": "5262e5b4c8b5668ae7066ad686757a6bb7f80c941d515fb9d586894fbc7de69a"
+    },
+    {
+      "name": "prism-code runtime, vendored",
+      "value": "0.2.0, tarball sha512-LBjO3WVy0ZHiWUjgAveUJoT6Fz7u+Oh0IEQyNXldX76jFMkOU44wnL0tp46Xx4/p1QLh8gItYGVRIvaPSW/a8g=="
+    },
+    {
+      "name": "Your browser",
+      "value": "runs the WebAssembly guest and this page"
+    }
   ],
   "attestations": {
     "proof": {
