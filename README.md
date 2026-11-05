@@ -32,6 +32,19 @@ Build attestation, from `prismpm verify`:
 `26b51bda592f3ada947e481d97016adb405e76e2cb44e9ee52f8c642b2ef54f0`.
 Archive fingerprint: `af7704d37dafc17f5bc51090e0ace8cd23e8e18604db410fb6b85a9d5fecf410`.
 
+## The page
+
+`site/` is the standard Prism app page, bound to the
+[Hologram brand kit](https://github.com/Hologram-Technologies/hologram-brand-kit):
+its tokens (`site/brand/hologram-warm.css`, unchanged), its fonts (Archivo,
+Geist, Geist Mono, under the OFL in `site/fonts`), and its voice. The page's
+own stylesheet declares no colour; every value is a brand variable. It shows
+what is proved (the claim, the proposition, the theorem and both attestations),
+what the gate pins without proving, and what is trusted (the SDK image, the
+Lean toolchain, the LexLean compiler semantics, the vendored runtime, your
+browser), reading everything specific to this app from `site/app.json` and
+the holo.
+
 ## Check it yourself
 
 In the browser: open the live page, read `verified` and the fingerprint,

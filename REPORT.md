@@ -127,3 +127,7 @@ With every fix above in place, the same app, from the same sentence:
 | | **Sentence to green repository** | **about 10 min** |
 
 This run: 26 min 14 s (23:03:26 → 23:29:40, the link confirmed in the browser) to the link, with 39 server calls, 4 check rounds, 3 verify rounds, one question asked twice, and 17 files written by hand that the ideal path writes for you.
+
+## 8. After the test: the standard page
+
+Added after the run, on Ilya's instruction, as the first instance of W14 and W16 of `prism-exceptional-apps-prompt.md`: the page in `site/` was rebuilt on the Hologram brand kit (commits `efb6bc4` and `943d88c`). Tokens come from `brand/hologram-warm.css` unchanged; fonts are Archivo, Geist and Geist Mono; the stylesheet declares no colour literal; the brand accent is the one dot beside the name; there is no logo. The page now carries the claim, the proposition as it reads in the model, the theorem with both attestations, what the conformance test pins without proving, and the trusted set with digests. Replay all runs on load. Checked locally against the built holo at desktop and phone width with no horizontal overflow and no console errors, then published by `pages`.
