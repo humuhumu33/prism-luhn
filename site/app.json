@@ -7,7 +7,15 @@
   "placeholder": "4539578763621486",
   "submitLabel": "Check",
   "outputLabel": "Answer",
-  "invalidResponse": "invalid request",
+  "answers": {
+    "positive": [
+      "valid"
+    ],
+    "negative": [
+      "invalid"
+    ],
+    "refusal": "invalid request"
+  },
   "claim": "LU-01: the app answers valid exactly when the Luhn checksum of the digits is divisible by 10.",
   "proposition": {
     "name": "Luhn",

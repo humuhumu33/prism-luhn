@@ -56,6 +56,9 @@ Archive fingerprint: `af7704d37dafc17f5bc51090e0ace8cd23e8e18604db410fb6b85a9d5f
   that precaches every file by content hash, so the app loads, verifies the
   holo and answers requests with the network off. A new deploy shows one
   "Update available" chip and reloads only when asked.
+- **Answers in colour.** `app.json` says which answers are positive, which
+  are negative and which is the refusal; the page shows positives green and
+  negatives, refusals and errors red, in the try card and in every example.
 - **What it shows.** The claim, the proposition as it reads in the model, the
   theorem and both attestations, what the gate pins without proving, and the
   trusted set with digests, all read from `site/app.json` and the holo.
