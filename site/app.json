@@ -16,6 +16,10 @@
     ],
     "refusal": "invalid request"
   },
+  "promise": {
+    "headline": "Says valid exactly when the number passes the Luhn check.",
+    "detail": "From the right, double every second digit, subtract 9 from any result over 9, and add them all up. The total must be divisible by 10."
+  },
   "claim": "LU-01: the app answers valid exactly when the Luhn checksum of the digits is divisible by 10.",
   "proposition": {
     "name": "Luhn",
